@@ -331,6 +331,11 @@ textarea:focus, input:focus { outline: 2px solid rgba(226,180,92,.5); outline-of
 .check { display: flex; gap: 10px; align-items: center; margin-top: 14px; font-weight: 600; }
 .check input { width: 20px; height: 20px; accent-color: var(--brass); }
 .sheet-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.lib { display: grid; gap: 8px; margin-top: 12px; }
+.lib-item { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 14px; border-radius: 16px; background: var(--surface-2); }
+.lib-item b { font-family: var(--serif); font-size: 1.1rem; margin-left: 4px; }
+.lib-item p { margin: 6px 0 0; }
+.lib-item .pill-btn { flex: none; }
 .menu { display: grid; gap: 6px; }
 .menu button { text-align: left; padding: 14px; border-radius: 14px; background: var(--surface-2); font-weight: 700; }
 .menu button.danger { color: var(--red); }

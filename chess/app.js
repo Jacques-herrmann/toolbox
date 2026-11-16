@@ -91,9 +91,14 @@ function updateBadge() {
 // =====================================================================
 //  RÉPERTOIRE
 // =====================================================================
+// Bibliothèque d'ouvertures prêtes à l'emploi (une seule réponse par position pour mon camp)
 const STARTERS = [
-  { name: 'Italienne', color: 'w', pgn: '1. e4 e5 2. Nf3 Nc6 (2... d6 3. d4) (2... Nf6 3. d3) 3. Bc4 Bc5 (3... Nf6 4. d3 Be7 (4... Bc5 5. c3) 5. O-O) 4. c3 Nf6 (4... d6 5. d4 exd4 6. cxd4 Bb6 7. Nc3) 5. d3 d6 6. O-O O-O 7. Re1 a6 8. Bb3 *' },
-  { name: 'Caro-Kann', color: 'b', pgn: '1. e4 c6 2. d4 (2. Nc3 d5 3. Nf3 Bg4) 2... d5 3. Nc3 (3. e5 Bf5 4. Nf3 e6 5. Be2 c5) (3. exd5 cxd5 4. Bd3 Nc6 5. c3 Nf6) (3. Nd2 dxe4 4. Nxe4 Bf5) 3... dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. h4 h6 7. Nf3 Nd7 8. h5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 *' },
+  { name: 'Gambit dame', color: 'w', desc: 'Variante d\'échange (structure Carlsbad) contre le GDR, + réponses au GDA, à la Slave, au contre-gambit Albin, à la Tchigorine et à 2…Ff5.',
+    pgn: '1. d4 d5 2. c4 e6 (2... dxc4 3. e4 e5 (3... Nf6 4. e5 Nd5 5. Bxc4 Nb6 6. Bd3) (3... c5 4. d5 Nf6 5. Nc3) 4. Nf3 exd4 5. Bxc4 Nc6 (5... Bb4+ 6. Nbd2 Nc6 7. O-O) 6. O-O) (2... c6 3. Nf3 Nf6 4. Nc3 dxc4 (4... e6 5. e3 Nbd7 6. Qc2 Bd6 7. Bd3) 5. a4 Bf5 6. e3 e6 7. Bxc4 Bb4 8. O-O O-O 9. Qe2) (2... e5 3. dxe5 d4 4. Nf3 Nc6 5. g3 Be6 (5... Bg4 6. Bg2 Qd7 7. O-O) 6. Nbd2) (2... Nc6 3. Nf3 Bg4 4. cxd5 Bxf3 5. gxf3 Qxd5 6. e3 e5 7. Nc3 Bb4 8. Bd2) (2... Bf5 3. cxd5 Bxb1 4. Qa4+ c6 5. Rxb1 Qxd5 6. e3) 3. Nc3 Nf6 (3... Be7 4. Nf3 Nf6 5. Bf4 O-O 6. e3) (3... c6 4. e3 Nf6 5. Nf3 Nbd7 6. Qc2) 4. cxd5 exd5 5. Bg5 c6 (5... Be7 6. e3 O-O 7. Bd3 Nbd7 8. Qc2) 6. e3 Be7 7. Bd3 Nbd7 8. Qc2 O-O 9. Nge2 Re8 10. O-O *' },
+  { name: 'Défense française', color: 'b', desc: 'Winawer (3…Fb4) contre 3.Cc3, …c5 et …Db6 contre l\'avance, 4…Dxd5 contre la Tarrasch, + l\'échange et l\'attaque est-indienne.',
+    pgn: '1. e4 e6 2. d4 (2. d3 d5 3. Nd2 Nf6 4. Ngf3 c5 5. g3 Nc6 6. Bg2 Be7 7. O-O O-O) (2. Nf3 d5 3. Nc3 Nf6 4. e5 Nfd7 5. d4 c5) 2... d5 3. Nc3 (3. e5 c5 4. c3 (4. Nf3 Nc6 5. Bd3 cxd4 6. O-O f6) 4... Nc6 5. Nf3 Qb6 6. a3 (6. Bd3 cxd4 7. cxd4 Bd7) (6. Be2 cxd4 7. cxd4 Nh6) 6... c4 7. Nbd2 Na5) (3. Nd2 c5 4. exd5 (4. Ngf3 cxd4 5. exd5 Qxd5 6. Bc4 Qd6) (4. c3 cxd4 5. cxd4 dxe4 6. Nxe4 Bb4+) 4... Qxd5 5. Ngf3 cxd4 6. Bc4 Qd6 7. O-O Nf6 8. Nb3 Nc6 9. Nbxd4 Nxd4 10. Nxd4 a6) (3. exd5 exd5 4. Bd3 (4. Nf3 Bd6 5. Bd3 Ne7) (4. c4 Nf6 5. Nc3 Bb4) 4... Bd6 5. c3 Ne7 6. Nf3 Bg4 7. O-O Nbc6) 3... Bb4 4. e5 (4. a3 Bxc3+ 5. bxc3 dxe4 6. Qg4 Nf6 7. Qxg7 Rg8 8. Qh6 Nbd7) (4. exd5 exd5 5. Bd3 Nc6 6. a3 Bxc3+ 7. bxc3 Nge7) (4. Bd2 dxe4 5. Qg4 Nf6 6. Qxg7 Rg8 7. Qh6 Rg6) (4. Ne2 dxe4 5. a3 Be7 6. Nxe4 Nf6) 4... c5 5. a3 Bxc3+ 6. bxc3 Ne7 7. Qg4 Qc7 8. Qxg7 Rg8 9. Qxh7 cxd4 10. Ne2 Nbc6 11. f4 dxc3 *' },
+  { name: 'Italienne', color: 'w', desc: 'Giuoco Piano lent (c3, d3, O-O, Te1) + réponses à 3…Cf6, 2…d6 et 2…Cf6.', pgn: '1. e4 e5 2. Nf3 Nc6 (2... d6 3. d4) (2... Nf6 3. d3) 3. Bc4 Bc5 (3... Nf6 4. d3 Be7 (4... Bc5 5. c3) 5. O-O) 4. c3 Nf6 (4... d6 5. d4 exd4 6. cxd4 Bb6 7. Nc3) 5. d3 d6 6. O-O O-O 7. Re1 a6 8. Bb3 *' },
+  { name: 'Caro-Kann', color: 'b', desc: 'Variante classique (4…Ff5, h4-h5) + avance, échange, 3.Cd2 et 2.Cc3.', pgn: '1. e4 c6 2. d4 (2. Nc3 d5 3. Nf3 Bg4) 2... d5 3. Nc3 (3. e5 Bf5 4. Nf3 e6 5. Be2 c5) (3. exd5 cxd5 4. Bd3 Nc6 5. c3 Nf6) (3. Nd2 dxe4 4. Nxe4 Bf5) 3... dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. h4 h6 7. Nf3 Nd7 8. h5 Bh7 9. Bd3 Bxd3 10. Qxd3 e6 *' },
 ];
 
 function renderHome() {
@@ -116,14 +121,11 @@ function renderHome() {
     : `<div class="empty-hero">
         <h1>Mémorise ton répertoire,<br><em>pour de bon.</em></h1>
         <p>Construis tes ouvertures coup par coup (ou colle un PGN), puis révise-les en répétition espacée : l'app te fait rejouer chaque position au bon moment, juste avant que tu l'oublies.</p>
-        <div class="row-btns"><button class="pill-btn solid" id="starters">Commencer avec des exemples</button></div>
+        <div class="row-btns"><button class="pill-btn solid" id="starters">Choisir dans la bibliothèque</button></div>
       </div>`;
   $('heroGo')?.addEventListener('click', () => startSession('due'));
   $('heroLearn')?.addEventListener('click', () => startSession('learn'));
-  $('starters')?.addEventListener('click', () => {
-    for (const s of STARTERS) { const ch = R.newChapter(s.name, s.color); R.mergePgn(ch, s.pgn); chapters.push(ch); }
-    save(); renderHome(); toast('2 ouvertures d\'exemple ajoutées');
-  });
+  $('starters')?.addEventListener('click', librarySheet);
 
   const list = $('chapters');
   list.innerHTML = '';
@@ -156,6 +158,37 @@ function calcStreak() {
 }
 
 $('newChBtn').addEventListener('click', () => newChapterSheet());
+$('libBtn').addEventListener('click', librarySheet);
+
+// Ajoute une ouverture de la bibliothèque ; si elle existe déjà (même nom), complète les coups manquants.
+function libraryAdd(s) {
+  let ch = chapters.find((c) => c.name === s.name && c.color === s.color);
+  const isNew = !ch;
+  if (isNew) { ch = R.newChapter(s.name, s.color); chapters.push(ch); }
+  const r = R.mergePgn(ch, s.pgn);
+  save();
+  return { isNew, added: r.added };
+}
+function librarySheet() {
+  sheet(`<h2>Bibliothèque</h2>
+    <p class="muted small">Des répertoires prêts à apprendre. Tu pourras ensuite les modifier comme tu veux (supprimer une variante, ajouter tes coups…).</p>
+    <div class="lib">${STARTERS.map((s, i) => {
+      const ch = chapters.find((c) => c.name === s.name && c.color === s.color);
+      return `<div class="lib-item">
+        <div><span class="side side-${s.color}">${s.color === 'w' ? 'Blancs' : 'Noirs'}</span> <b>${esc(s.name)}</b><p class="muted small">${esc(s.desc)}</p></div>
+        <button class="pill-btn ${ch ? '' : 'solid'}" data-i="${i}">${ch ? 'Compléter' : 'Ajouter'}</button></div>`;
+    }).join('')}</div>
+    <div class="sheet-actions"><button class="pill-btn" data-close>Fermer</button></div>`, (s) => {
+    s.querySelector('[data-close]').onclick = closeSheet;
+    s.querySelector('.lib').onclick = (e) => {
+      const i = e.target.dataset.i; if (i === undefined) return;
+      const r = libraryAdd(STARTERS[+i]);
+      e.target.textContent = 'Ajoutée ✓'; e.target.classList.remove('solid'); e.target.disabled = true;
+      toast(r.isNew ? `${STARTERS[+i].name} ajoutée` : r.added ? `${r.added} coups ajoutés à ${STARTERS[+i].name}` : 'Déjà complète');
+      renderHome();
+    };
+  });
+}
 function newChapterSheet(prefill) {
   sheet(`
     <h2>Nouvelle ouverture</h2>
