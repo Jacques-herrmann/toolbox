@@ -1,0 +1,21 @@
+name = "toolbox-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Adresse de ton instance Twake Workplace (sans / final)
+TWAKE_URL = "https://REMPLACER.twake.app"
+# Dossier racine dans lequel l'IA a le droit de ranger (et de créer des sous-dossiers)
+ROOT_FOLDER = "/Administratif"
+# Optionnel : URL de l'app Drive pour les liens « Ouvrir le dossier »
+# DRIVE_URL = "https://REMPLACER-drive.twake.app"
+
+# Créé avec : npx wrangler kv namespace create TOKENS
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "REMPLACER_PAR_L_ID_DU_KV"
+
+# Secrets (jamais dans ce fichier) :
+#   npx wrangler secret put ANTHROPIC_API_KEY
+#   npx wrangler secret put APP_SECRET

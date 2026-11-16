@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Scanner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="../shared/style.css">
+  <style>
+    .pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+    .page { position: relative; background: var(--surface-2); border-radius: 10px; overflow: hidden; aspect-ratio: 1 / 1.414; cursor: pointer; }
+    .page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .page .n { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: .75rem; padding: 2px 6px; border-radius: 6px; }
+    .page .x { position: absolute; right: 4px; top: 4px; padding: 2px 8px; background: rgba(0,0,0,.6); color: #fff; border-radius: 8px; }
+    .add { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .add label { text-align: center; padding: 16px; font-weight: 600; }
+    .add input { display: none; }
+
+    #editor { position: fixed; inset: 0; z-index: 30; background: #000; display: flex; flex-direction: column; }
+    #editor .stage { flex: 1; position: relative; display: grid; place-items: center; overflow: hidden; touch-action: none; padding: 12px; }
+    #editor .stage > div { position: relative; }
+    #editor canvas, #editor svg { display: block; max-width: calc(100vw - 24px); max-height: calc(100dvh - 190px); }
+    #editor svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #editor .bar { padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); background: #111318; display: flex; flex-direction: column; gap: 10px; }
+    #editor .bar .row { justify-content: space-between; flex-wrap: wrap; }
+    #editor .bar .tabs button { padding: 8px 12px; }
+    .busy { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.6); color: #fff; display: grid; place-items: center; text-align: center; padding: 24px; }
+    .result a { color: var(--accent); }
+    .history li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="../" class="back" aria-label="Toolbox">‹</a>
+    <h1 style="flex:1">Scanner</h1>
+    <button class="ghost" id="openSettings" aria-label="Réglages">⚙️</button>
+  </header>
+
+  <main class="stack">
+    <div class="card stack hidden" id="settings">
+      <strong>Connexion</strong>
+      <label class="stack" style="gap:4px"><span class="muted">URL du serveur (Cloudflare Worker)</span>
+        <input id="sUrl" placeholder="https://toolbox-api.xxx.workers.dev" autocomplete="off"></label>
+      <label class="stack" style="gap:4px"><span class="muted">Clé de l'app (APP_SECRET)</span>
+        <input id="sKey" type="password" autocomplete="off"></label>
+      <div class="row">
+        <button id="sSave">Enregistrer</button>
+        <button class="ghost" id="sTest">Tester</button>
+      </div>
+      <div class="muted" id="sStatus"></div>
+    </div>
+
+    <div class="add">
+      <label class="btn">📷 Photo<input id="camera" type="file" accept="image/*" capture="environment"></label>
+      <label class="btn" style="background:var(--surface-2);color:var(--text)">🖼️ Importer<input id="import" type="file" accept="image/*" multiple></label>
+    </div>
+
+    <div class="pages" id="pages"></div>
+
+    <div class="stack hidden" id="sendBox">
+      <input id="note" placeholder="Indice pour l'IA (optionnel) : ex. « facture travaux maison »">
+      <button id="send" style="padding:14px;font-weight:700">Envoyer vers Twake</button>
+      <div class="row">
+        <button class="ghost" id="download" style="flex:1">Télécharger le PDF</button>
+        <button class="ghost" id="clear" style="flex:1">Tout effacer</button>
+      </div>
+    </div>
+
+    <div class="card result hidden" id="result"></div>
+
+    <div class="card stack" id="historyBox">
+      <strong>Derniers envois</strong>
+      <ul class="history muted" id="history" style="margin:0;padding-left:18px"></ul>
+    </div>
+  </main>
+
+  <section id="editor" class="hidden">
+    <div class="stage" id="stage"><div><canvas id="edCanvas"></canvas><svg id="edSvg"></svg></div></div>
+    <div class="bar">
+      <div class="tabs" id="filters">
+        <button data-f="auto">Auto</button>
+        <button data-f="gray">Gris</button>
+        <button data-f="bw">N&amp;B</button>
+        <button data-f="none">Original</button>
+      </div>
+      <div class="row">
+        <button class="ghost" id="edRotate">⟳ Pivoter</button>
+        <button class="ghost" id="edDetect">✨ Auto</button>
+        <button class="ghost" id="edFull">⛶ Tout</button>
+      </div>
+      <div class="row">
+        <button class="ghost" id="edCancel" style="flex:1">Annuler</button>
+        <button id="edOk" style="flex:2">Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="busy hidden" id="busy"><div id="busyText">…</div></div>
+
+  <script src="../shared/pwa.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

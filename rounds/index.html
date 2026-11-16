@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Rounds</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="../shared/style.css">
+  <style>
+    .stepper { display: flex; align-items: center; gap: 6px; }
+    .stepper button { width: 40px; padding: 8px 0; background: var(--surface-2); color: var(--text); }
+    .stepper input { width: 84px; text-align: center; font-variant-numeric: tabular-nums; }
+    .rounds-list { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px 10px; align-items: center; }
+    .rounds-list .stepper input { width: 70px; }
+    .rounds-list .stepper button { width: 32px; }
+    .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+    .presets .chip { display: inline-flex; gap: 4px; align-items: center; background: var(--surface-2); border-radius: 999px; padding: 2px 4px 2px 12px; }
+    .presets .chip button { padding: 6px 8px; background: transparent; color: var(--text); }
+    .presets .chip button.del { color: var(--muted); }
+
+    /* Écran d'exécution */
+    #run {
+      position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between; text-align: center;
+      padding: calc(16px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+      background: var(--phase, #333); color: #fff; transition: background .25s;
+      user-select: none; -webkit-user-select: none;
+    }
+    #run[data-phase="prep"] { --phase: #b88a00; }
+    #run[data-phase="work"] { --phase: #1f9d55; }
+    #run[data-phase="rest"] { --phase: #2563eb; }
+    #run[data-phase="done"] { --phase: #374151; }
+    #run[data-warn="1"] { animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { filter: brightness(1.25); } }
+    #run .phase { font-size: clamp(1.4rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    #run .round { font-size: clamp(1.1rem, 4vw, 1.8rem); opacity: .9; }
+    #run .clock { font-size: clamp(5rem, 26vw, 16rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+    #run .sub { opacity: .85; font-size: 1rem; min-height: 1.4em; }
+    #run .bar { width: min(600px, 100%); height: 8px; border-radius: 4px; background: rgba(255,255,255,.25); overflow: hidden; }
+    #run .bar i { display: block; height: 100%; width: 0; background: #fff; }
+    #run .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    #run .controls button { background: rgba(0,0,0,.25); color: #fff; min-width: 96px; padding: 14px 16px; font-weight: 600; }
+    #run .counter {
+      background: rgba(0,0,0,.25); color: #fff; font-size: 1.3rem; padding: 18px 28px; border-radius: 18px;
+    }
+    #run .counter b { font-size: 2rem; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="../" class="back" aria-label="Toolbox">‹</a>
+    <h1>Rounds</h1>
+  </header>
+
+  <main class="stack" id="setup">
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="card stack" id="form"></div>
+    <div class="card stack">
+      <div class="row" style="justify-content:space-between">
+        <strong>Mes presets</strong>
+        <button class="ghost" id="savePreset">+ Sauvegarder</button>
+      </div>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="muted" id="summary" style="text-align:center"></div>
+    <button id="start" style="padding:16px;font-size:1.1rem;font-weight:700">Démarrer</button>
+  </main>
+
+  <section id="run" class="hidden" data-phase="prep">
+    <div>
+      <div class="phase" id="rPhase">Prépare-toi</div>
+      <div class="round" id="rRound"></div>
+    </div>
+    <div class="stack" style="align-items:center;width:100%">
+      <div class="clock" id="rClock">00:00</div>
+      <div class="bar"><i id="rBar"></i></div>
+      <div class="sub" id="rNext"></div>
+    </div>
+    <button class="counter hidden" id="rCounter">Rounds faits<b id="rCount">0</b></button>
+    <div class="controls">
+      <button id="rPause">Pause</button>
+      <button id="rSkip">Suivant ›</button>
+      <button id="rStop">Stop</button>
+    </div>
+  </section>
+
+  <script src="../shared/pwa.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

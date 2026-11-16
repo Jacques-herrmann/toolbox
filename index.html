@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <title>Toolbox</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+  <header class="topbar"><h1>Toolbox</h1></header>
+  <main>
+    <!-- Chaque app est une PWA indépendante : ouvre-la puis « Installer » pour l'avoir seule. -->
+    <nav class="grid">
+      <a class="tile" href="rounds/"><div class="ico">🥊</div><span>Rounds</span></a>
+      <a class="tile" href="scan/"><div class="ico">📄</div><span>Scanner</span></a>
+    </nav>
+    <p class="muted" style="font-size:.85rem;margin-top:24px">
+      Chaque app s'installe aussi seule : ouvre-la, puis « Installer » / « Ajouter à l'écran d'accueil ».
+    </p>
+  </main>
+  <script src="shared/pwa.js"></script>
+</body>
+</html>
