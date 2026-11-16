@@ -232,9 +232,43 @@ $('#savePreset').onclick = () => {
 function render() { renderModes(); renderForm(); renderHero(); renderPresets(); }
 
 // ---------- Sons ----------
+const audioPrefs = { sound: true, bypassSilent: true, ...db.get('audio', {}) };
 let ctx = null;
+let silentLoop = null;
+
+// Sur iPhone, Web Audio est coupé par le mode silencieux. Deux leviers :
+// la session audio « playback » (Safari 16.4+) et, en secours, une boucle
+// <audio> muette qui fait passer la page en lecture média.
+function silentWavUrl() {
+  const rate = 8000, n = rate / 2, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+  const str = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+  str(36, 'data'); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+}
+
+function unlockAudio() { // à appeler dans un geste utilisateur
+  if (navigator.audioSession) {
+    try { navigator.audioSession.type = audioPrefs.bypassSilent ? 'playback' : 'auto'; } catch {}
+  }
+  ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+  ctx.resume();
+  if (audioPrefs.bypassSilent && audioPrefs.sound && !navigator.audioSession) {
+    if (!silentLoop) {
+      silentLoop = new Audio(silentWavUrl());
+      silentLoop.loop = true;
+      silentLoop.setAttribute('playsinline', '');
+    }
+    silentLoop.play().catch(() => {});
+  } else silentLoop?.pause();
+}
+function releaseAudio() { silentLoop?.pause(); }
+
 function tone(freq, dur, when = 0, vol = 0.35) {
-  if (!ctx) return;
+  if (!ctx || !audioPrefs.sound) return;
   const t = ctx.currentTime + when;
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'square'; o.frequency.value = freq;
@@ -269,8 +303,7 @@ document.addEventListener('visibilitychange', () => { if (run && !run.done && do
 function start() {
   const segs = build(mode, cfg());
   if (!segs.length) return;
-  ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-  ctx.resume();
+  unlockAudio();
   const total = segs.find((s) => s.total)?.total || 0;
   run = { segs, idx: -1, segStart: 0, pausedAt: null, count: 0, timer: null, total };
   $('#setup').classList.add('hidden');
@@ -374,6 +407,7 @@ function finish() {
 function stop() {
   if (run) clearInterval(run.timer);
   run = null;
+  releaseAudio();
   wakeLock?.release?.().catch(() => {});
   wakeLock = null;
   $('#run').classList.add('hidden');
@@ -405,4 +439,27 @@ $('#rCounter').onclick = () => {
   draw();
 };
 
+// ---------- Réglages du son ----------
+function renderSettings() {
+  const box = $('#settingsRows');
+  box.innerHTML = '';
+  const toggle = (key, label, hint, onChange) => {
+    const sw = document.createElement('label');
+    sw.className = 'switch';
+    sw.innerHTML = `<input type="checkbox" aria-label="${esc(label)}"><span></span>`;
+    const cb = sw.querySelector('input');
+    cb.checked = !!audioPrefs[key];
+    cb.onchange = () => { audioPrefs[key] = cb.checked; db.set('audio', audioPrefs); onChange?.(); };
+    box.append(row(label, hint, sw));
+  };
+  toggle('sound', 'Bips', 'Signaux sonores pendant la séance', renderSettings);
+  if (audioPrefs.sound) toggle('bypassSilent', 'Même en mode silencieux', 'iPhone : les bips passent malgré le bouton silencieux (peut couper la musique en fond)', () => { unlockAudio(); releaseAudio(); });
+}
+$('#openSettings').onclick = () => {
+  const open = $('#settings').classList.toggle('hidden') === false;
+  $('#openSettings').setAttribute('aria-expanded', open);
+};
+$('#testSound').onclick = () => { unlockAudio(); sounds.go(); setTimeout(releaseAudio, 1200); };
+
+renderSettings();
 render();
