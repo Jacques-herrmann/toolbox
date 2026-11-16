@@ -5,7 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Buffer } from 'node:buffer';
 
-const MODEL = 'claude-opus-5-5';
+const MODEL = 'claude-haiku-5-5';
 const SCOPE = 'io.cozy.files';
 
 export default {
@@ -17,6 +17,7 @@ export default {
         case '/setup': return await setup(url, env);
         case '/callback': return await callback(url, env);
         case '/health': requireAuth(request, env); return cors(json(await health(env)));
+        case '/test': requireAuth(request, env); return cors(json(await selfTest(env)));
         case '/scan':
           requireAuth(request, env);
           if (request.method !== 'POST') return cors(json({ error: 'POST attendu' }, 405));
@@ -219,8 +220,28 @@ async function upload(env, dirId, baseName, bytes) {
 async function health(env) {
   const tokens = await env.TOKENS.get('tokens', 'json');
   const k = (env.ANTHROPIC_API_KEY || '').trim();
-  const claudeKey = !k ? 'manquante' : k.startsWith('sk-ant-api') ? 'ok' : 'format inattendu';
+  const claudeKey = k ? 'présente' : 'manquante';
   return { ok: true, twake: !!tokens, claudeKey, instance: env.TWAKE_URL, root: env.ROOT_FOLDER };
+}
+
+// Vérifie la clé Claude (appel gratuit au Models API) et la lecture des dossiers Twake.
+async function selfTest(env) {
+  const result = {};
+  try {
+    const m = await new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }).models.retrieve(MODEL);
+    result.claude = `ok (${m.id})`;
+  } catch (e) {
+    result.claude = `erreur ${e.status || ''} : ${e.error?.error?.message || e.message}`;
+  }
+  try {
+    await env.TOKENS.delete('tree');
+    const folders = await folderTree(env, (env.ROOT_FOLDER || '/').replace(/\/+$/, '') || '/');
+    result.twake = `ok (${folders.length} dossiers)`;
+    result.sample = folders.slice(0, 8);
+  } catch (e) {
+    result.twake = `erreur : ${e.message}`;
+  }
+  return result;
 }
 
 // ---------- Classification par Claude ----------
@@ -259,11 +280,10 @@ const toBase64 = (bytes) => Buffer.from(bytes).toString('base64');
 
 async function classify(env, pdfBytes, folders, note, root) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-  const response = await client.beta.messages.create({
+  // Haiku 5.5 : pas de fallback serveur sur refus (géré plus bas via stop_reason).
+  const response = await client.messages.create({
     model: MODEL,
     max_tokens: 16000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
     system: systemPrompt(root, new Date().toISOString().slice(0, 10)),
     messages: [{
@@ -290,6 +310,8 @@ async function scan(request, env) {
 
   const folders = await folderTree(env, root);
   const ai = await classify(env, bytes, folders, note, root);
+  // ?dry=1 : renvoie la décision de l'IA sans rien envoyer dans Twake
+  if (new URL(request.url).searchParams.get('dry') === '1') return { ok: true, dry: true, ...ai };
 
   // Garde-fou : le dossier doit rester sous la racine
   let target = String(ai.folder_path || root).replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
