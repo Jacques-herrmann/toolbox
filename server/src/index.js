@@ -218,7 +218,9 @@ async function upload(env, dirId, baseName, bytes) {
 
 async function health(env) {
   const tokens = await env.TOKENS.get('tokens', 'json');
-  return { ok: true, twake: !!tokens, instance: env.TWAKE_URL, root: env.ROOT_FOLDER };
+  const k = (env.ANTHROPIC_API_KEY || '').trim();
+  const claudeKey = !k ? 'manquante' : k.startsWith('sk-ant-api') ? 'ok' : 'format inattendu';
+  return { ok: true, twake: !!tokens, claudeKey, instance: env.TWAKE_URL, root: env.ROOT_FOLDER };
 }
 
 // ---------- Classification par Claude ----------
