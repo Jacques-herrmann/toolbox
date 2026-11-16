@@ -3,25 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111318">
+  <meta name="theme-color" content="#0d0d0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Toolbox</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="shared/style.css">
+  <style>
+    :root {
+      --bg: #0d0d0f; --card: #17171a; --line: #26262b; --text: #f4f2ee; --muted: #8d8b86;
+      --font: 'Bricolage Grotesque', system-ui, sans-serif; color-scheme: dark;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(40% 30% at 85% 8%, rgba(200,255,60,.13), transparent 70%),
+        radial-gradient(45% 35% at 5% 55%, rgba(18,112,79,.22), transparent 70%),
+        radial-gradient(35% 25% at 90% 95%, rgba(71,168,255,.10), transparent 70%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .35; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    }
+    main { max-width: 640px; margin: 0 auto; padding: calc(28px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom)); }
+    .date { font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    h1 { font-size: clamp(3.4rem, 17vw, 5.4rem); line-height: .9; margin: 10px 0 0; font-weight: 800; letter-spacing: -.045em; font-variation-settings: 'opsz' 96; }
+    h1 span { color: var(--muted); }
+    h1 em { font-style: normal; color: #c8ff3c; }
+    .lede { color: var(--muted); font-size: 1.05rem; margin: 14px 0 0; max-width: 30ch; line-height: 1.4; }
+    .lede b { color: var(--text); font-weight: 600; }
+
+    .apps { display: grid; gap: 14px; margin-top: 34px; }
+    .app {
+      position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+      padding: 16px 18px 16px 16px; border-radius: 26px; background: var(--card); border: 1px solid var(--line);
+      text-decoration: none; overflow: hidden; isolation: isolate;
+      animation: rise .6s cubic-bezier(.2,.8,.2,1) both; transition: transform .15s, border-color .2s;
+    }
+    .app::before {
+      content: ''; position: absolute; inset: 0; z-index: -1; opacity: .9;
+      background: radial-gradient(120% 140% at 0% 0%, var(--glow), transparent 55%);
+    }
+    .app:active { transform: scale(.985); }
+    .app:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+    .app img { width: 68px; height: 68px; border-radius: 18px; box-shadow: 0 8px 24px -8px rgba(0,0,0,.6); }
+    .app h2 { margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; }
+    .app p { margin: 3px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.35; }
+    .app .tags { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+    .app .tags span { font-size: .7rem; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.06); color: #c9c6bf; }
+    .app .go {
+      width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--accent); color: var(--on-accent); transition: transform .2s;
+    }
+    .app:hover .go { transform: translateX(3px); }
+    .app .go svg { width: 18px; height: 18px; }
+    .rounds { --accent: #c8ff3c; --on-accent: #0a0a0b; --glow: rgba(200,255,60,.16); }
+    .scan { --accent: #4fc192; --on-accent: #08130e; --glow: rgba(79,193,146,.18); animation-delay: .08s; }
+
+    .soon {
+      margin-top: 14px; padding: 18px; border-radius: 26px; border: 1.5px dashed var(--line); color: var(--muted);
+      display: flex; align-items: center; gap: 14px; animation: rise .6s .16s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .soon i { width: 44px; height: 44px; border-radius: 14px; border: 1.5px dashed var(--line); display: grid; place-items: center; font-style: normal; font-size: 1.3rem; }
+    .soon b { color: var(--text); font-weight: 600; display: block; }
+    .soon small { font-size: .85rem; }
+
+    footer { margin-top: 40px; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+    footer b { color: var(--text); font-weight: 600; }
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+  </style>
 </head>
 <body>
-  <header class="topbar"><h1>Toolbox</h1></header>
   <main>
-    <!-- Chaque app est une PWA indépendante : ouvre-la puis « Installer » pour l'avoir seule. -->
-    <nav class="grid">
-      <a class="tile" href="rounds/"><div class="ico">🥊</div><span>Rounds</span></a>
-      <a class="tile" href="scan/"><div class="ico">📄</div><span>Scanner</span></a>
-    </nav>
-    <p class="muted" style="font-size:.85rem;margin-top:24px">
-      Chaque app s'installe aussi seule : ouvre-la, puis « Installer » / « Ajouter à l'écran d'accueil ».
-    </p>
+    <div class="date" id="date"></div>
+    <h1>Tool<span>box</span><em>.</em></h1>
+    <p class="lede">Mes outils perso. <b>Zéro abonnement</b>, zéro pub, rien qui ne quitte ma poche sans raison.</p>
+
+    <div class="apps">
+      <a class="app rounds" href="rounds/">
+        <img src="rounds/icon-192.png" alt="">
+        <div>
+          <h2>Rounds</h2>
+          <p>Minuteur d'entraînement, lisible de loin.</p>
+          <div class="tags"><span>Boxe</span><span>Tabata</span><span>EMOM</span><span>AMRAP</span></div>
+        </div>
+        <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="app scan" href="scan/">
+        <img src="scan/icon-192.png" alt="">
+        <div>
+          <h2>Scanner</h2>
+          <p>Photo → PDF → rangé au bon endroit dans Twake.</p>
+          <div class="tags"><span>Recadrage auto</span><span>IA</span><span>Twake</span></div>
+        </div>
+        <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+
+    <div class="soon"><i>+</i><div><b>Prochaine app</b><small>Une appli payante à remplacer ? Elle arrive ici.</small></div></div>
+
+    <footer>Chaque outil s'installe aussi <b>seul</b> sur l'écran d'accueil : ouvre-le, puis « Installer » ou « Partager → Sur l'écran d'accueil ».</footer>
   </main>
+  <script>
+    document.getElementById('date').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  </script>
   <script src="shared/pwa.js"></script>
 </body>
 </html>

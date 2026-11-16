@@ -4,45 +4,57 @@ import { detectCorners, defaultCorners, process, loadCV } from './detect.js';
 const JSPDF_URL = 'https://cdn.jsdelivr.net/npm/jspdf@4.2.1/+esm';
 const db = store('scan');
 const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const ICON = {
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v6.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>',
+  ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+};
 
 /** @type {{src: HTMLCanvasElement, corners: {x:number,y:number}[], filter: string, out: HTMLCanvasElement, thumb: string}[]} */
 let pages = [];
 
-// ---------- UI utilitaires ----------
-function busy(text) {
+function busy(text, sub = '') {
   $('#busy').classList.toggle('hidden', !text);
-  if (text) $('#busyText').textContent = text;
-}
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  if (text) { $('#busyText').textContent = text; $('#busySub').textContent = sub; }
 }
 
-// ---------- Réglages ----------
+// ---------- Réglages & état de connexion ----------
 const settings = () => ({ url: (db.get('url', '') || '').replace(/\/+$/, ''), key: db.get('key', '') });
+function setDest(state, text) {
+  const d = $('#dest');
+  d.classList.toggle('on', state === 'on');
+  d.querySelector('span').textContent = text;
+}
+async function checkConnection(verbose = false) {
+  const { url, key } = settings();
+  if (!url || !key) { setDest('off', 'non configuré'); return; }
+  try {
+    const r = await fetch(`${url}/health`, { headers: { Authorization: `Bearer ${key}` } });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || `erreur ${r.status}`);
+    if (j.twake) setDest('on', `Twake · ${j.root}`);
+    else setDest('off', 'Twake à connecter');
+    if (verbose) {
+      $('#sStatus').innerHTML = j.twake
+        ? `<b>✓ Tout est prêt.</b> Les documents iront dans <code>${esc(j.root)}</code> sur ${esc(j.instance.replace('https://', ''))}.`
+        : `Serveur joignable, mais Twake n'est pas encore connecté. <a href="${esc(url)}/setup?key=${encodeURIComponent(key)}" target="_blank" rel="noopener">Connecter Twake →</a>`;
+    }
+  } catch (e) {
+    setDest('off', 'hors ligne');
+    if (verbose) $('#sStatus').textContent = `✕ ${e.message}`;
+  }
+}
 $('#openSettings').onclick = () => $('#settings').classList.toggle('hidden');
 $('#sUrl').value = settings().url;
 $('#sKey').value = settings().key;
 if (!settings().url) $('#settings').classList.remove('hidden');
-$('#sSave').onclick = () => {
-  db.set('url', $('#sUrl').value.trim());
-  db.set('key', $('#sKey').value.trim());
-  $('#sStatus').textContent = 'Enregistré.';
-};
-$('#sTest').onclick = async () => {
-  $('#sSave').onclick();
-  const { url, key } = settings();
-  $('#sStatus').textContent = 'Test…';
-  try {
-    const r = await fetch(`${url}/health`, { headers: { Authorization: `Bearer ${key}` } });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || r.status);
-    $('#sStatus').innerHTML = j.twake
-      ? `✅ Serveur OK, Twake connecté (${esc(j.instance)})`
-      : `⚠️ Serveur OK mais Twake pas encore connecté : <a href="${esc(url)}/setup?key=${encodeURIComponent(key)}" target="_blank">connecter Twake</a>`;
-  } catch (e) {
-    $('#sStatus').textContent = `❌ ${e.message}`;
-  }
-};
+const saveSettings = () => { db.set('url', $('#sUrl').value.trim()); db.set('key', $('#sKey').value.trim()); };
+$('#sSave').onclick = async () => { saveSettings(); $('#sStatus').textContent = 'Enregistré, vérification…'; await checkConnection(true); };
+$('#sTest').onclick = async () => { saveSettings(); $('#sStatus').textContent = 'Vérification…'; await checkConnection(true); };
 
 // ---------- Chargement des images ----------
 async function fileToCanvas(file, maxSide = 2400) {
@@ -58,15 +70,15 @@ async function fileToCanvas(file, maxSide = 2400) {
 
 async function addFiles(files) {
   for (const file of files) {
-    busy('Lecture de l’image…');
+    busy('Lecture de la photo…');
     try {
       const src = await fileToCanvas(file);
-      busy('Détection du document…');
+      busy('Détection de la feuille…', 'Recherche des bords du document');
       let corners = null;
       try { corners = await detectCorners(src); } catch (e) { console.warn(e); }
       busy(null);
       const page = await edit({ src, corners: corners || defaultCorners(src.width, src.height), filter: db.get('filter', 'auto') });
-      if (page) { pages.push(page); renderPages(); }
+      if (page) { pages.push(page); $('#result').classList.add('hidden'); renderPages(); }
     } catch (e) {
       busy(null);
       alert(`Impossible de lire l'image : ${e.message}`);
@@ -75,8 +87,7 @@ async function addFiles(files) {
 }
 $('#camera').onchange = (e) => { addFiles([...e.target.files]); e.target.value = ''; };
 $('#import').onchange = (e) => { addFiles([...e.target.files]); e.target.value = ''; };
-// Précharge OpenCV en arrière-plan
-setTimeout(() => loadCV().catch(() => {}), 500);
+setTimeout(() => loadCV().catch(() => {}), 800); // préchargement d'OpenCV
 
 // ---------- Éditeur de coins ----------
 function edit(page) {
@@ -84,6 +95,7 @@ function edit(page) {
     let { src, corners, filter } = page;
     corners = corners.map((p) => ({ ...p }));
     const canvas = $('#edCanvas'), svg = $('#edSvg');
+    const r = () => Math.max(src.width, src.height) / 38;
     const draw = () => {
       canvas.width = src.width; canvas.height = src.height;
       canvas.getContext('2d').drawImage(src, 0, 0);
@@ -91,11 +103,13 @@ function edit(page) {
       svg.setAttribute('preserveAspectRatio', 'none');
       drawOverlay();
     };
-    const r = () => Math.max(src.width, src.height) / 40;
     const drawOverlay = () => {
       const pts = corners.map((p) => `${p.x},${p.y}`).join(' ');
-      svg.innerHTML = `<polygon points="${pts}" fill="rgba(62,207,142,.18)" stroke="#3ecf8e" stroke-width="${r() / 4}"/>` +
-        corners.map((p, i) => `<circle data-i="${i}" cx="${p.x}" cy="${p.y}" r="${r()}" fill="rgba(62,207,142,.35)" stroke="#fff" stroke-width="${r() / 5}"/>`).join('');
+      const W = src.width, H = src.height, s = r();
+      svg.innerHTML =
+        `<path d="M0 0H${W}V${H}H0Z M${pts.split(' ').join(' L')} Z" fill="rgba(0,0,0,.5)" fill-rule="evenodd"/>` +
+        `<polygon points="${pts}" fill="none" stroke="#4fc192" stroke-width="${s / 4}" stroke-linejoin="round"/>` +
+        corners.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="${s}" fill="rgba(79,193,146,.25)" stroke="#fff" stroke-width="${s / 4.5}"/><circle cx="${p.x}" cy="${p.y}" r="${s / 4}" fill="#fff"/>`).join('');
     };
     const setFilterButtons = () => document.querySelectorAll('#filters button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === filter));
 
@@ -106,7 +120,6 @@ function edit(page) {
     };
     svg.onpointerdown = (e) => {
       const p = toLocal(e);
-      // coin le plus proche (tolérance large pour les doigts)
       let best = -1, bd = Infinity;
       corners.forEach((c, i) => { const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < bd) { bd = d; best = i; } });
       if (bd < r() * 4) { dragging = best; svg.setPointerCapture(e.pointerId); }
@@ -120,8 +133,7 @@ function edit(page) {
       c.width = src.height; c.height = src.width;
       const ctx = c.getContext('2d');
       ctx.translate(c.width, 0); ctx.rotate(Math.PI / 2); ctx.drawImage(src, 0, 0);
-      // rotation 90° horaire : (x, y) → (H - y, x), puis réordonner
-      const H = src.height;
+      const H = src.height; // rotation 90° horaire : (x, y) → (H − y, x)
       const rot = corners.map((p) => ({ x: H - p.y, y: p.x }));
       corners = [rot[3], rot[0], rot[1], rot[2]];
       src = c;
@@ -137,7 +149,7 @@ function edit(page) {
     const close = (value) => { $('#editor').classList.add('hidden'); resolve(value); };
     $('#edCancel').onclick = () => close(null);
     $('#edOk').onclick = async () => {
-      busy('Traitement…');
+      busy('Redressement…', 'Perspective et nettoyage des ombres');
       try {
         const out = await process(src, corners, filter);
         db.set('filter', filter);
@@ -154,28 +166,41 @@ function edit(page) {
 }
 
 function thumbOf(canvas) {
-  const s = 300 / Math.max(canvas.width, canvas.height);
+  const s = 360 / Math.max(canvas.width, canvas.height);
   const c = document.createElement('canvas');
   c.width = Math.round(canvas.width * s); c.height = Math.round(canvas.height * s);
   c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
-  return c.toDataURL('image/jpeg', 0.7);
+  return c.toDataURL('image/jpeg', 0.75);
 }
 
-// ---------- Liste des pages ----------
+// ---------- Pages ----------
 function renderPages() {
+  const has = pages.length > 0;
+  $('#empty').classList.toggle('hidden', has || !$('#result').classList.contains('hidden'));
+  $('#doc').classList.toggle('hidden', !has);
+  $('#quickSend').disabled = !has;
+  $('#dockLabel').textContent = has ? 'Ajouter une page' : 'Scanner';
+  $('#count').textContent = has ? `${pages.length} page${pages.length > 1 ? 's' : ''}` : '';
   const box = $('#pages');
   box.innerHTML = '';
   pages.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'page';
-    el.innerHTML = `<img alt="Page ${i + 1}" src="${p.thumb}"><span class="n">${i + 1}</span><button class="x" aria-label="Retirer">✕</button>`;
+    el.style.animationDelay = `${i * 40}ms`;
+    el.innerHTML = `<img alt="Page ${i + 1}" src="${p.thumb}"><span class="n">${String(i + 1).padStart(2, '0')}</span><button class="x" aria-label="Retirer la page">${ICON.x}</button>`;
     el.onclick = async () => { const np = await edit(p); if (np) { pages[i] = np; renderPages(); } };
     el.querySelector('.x').onclick = (e) => { e.stopPropagation(); pages.splice(i, 1); renderPages(); };
     box.append(el);
   });
-  $('#sendBox').classList.toggle('hidden', !pages.length);
+  if (has) {
+    const add = document.createElement('label');
+    add.className = 'page add';
+    add.innerHTML = `<div>${ICON.plus}Ajouter<br>une page</div>`;
+    add.onclick = () => $('#camera').click();
+    box.append(add);
+  }
 }
-$('#clear').onclick = () => { if (confirm('Effacer toutes les pages ?')) { pages = []; renderPages(); $('#result').classList.add('hidden'); } };
+$('#clear').onclick = () => { if (confirm('Effacer toutes les pages ?')) { pages = []; renderPages(); } };
 
 // ---------- PDF ----------
 async function buildPdf() {
@@ -186,8 +211,7 @@ async function buildPdf() {
     const [pw, ph] = landscape ? [297, 210] : [210, 297];
     if (!pdf) pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: landscape ? 'l' : 'p', compress: true });
     else pdf.addPage('a4', landscape ? 'l' : 'p');
-    // JPEG ~200 dpi max sur A4
-    const maxW = landscape ? 2339 : 1654;
+    const maxW = landscape ? 2339 : 1654; // ~200 dpi sur A4
     const s = Math.min(1, maxW / p.out.width);
     const c = document.createElement('canvas');
     c.width = Math.round(p.out.width * s); c.height = Math.round(p.out.height * s);
@@ -214,54 +238,67 @@ $('#download').onclick = async () => {
 };
 
 // ---------- Envoi ----------
-$('#send').onclick = async () => {
+async function send() {
+  if (!pages.length) return;
   const { url, key } = settings();
-  if (!url || !key) { $('#settings').classList.remove('hidden'); return alert('Configure d’abord le serveur (⚙️).'); }
+  if (!url || !key) { $('#settings').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   busy('Création du PDF…');
   try {
     const blob = await buildPdf();
-    busy('Analyse par l’IA et rangement dans Twake…');
+    busy('Lecture par l’IA…', 'Type de document, émetteur, date, dossier');
     const r = await fetch(`${url}/scan`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/pdf',
-        'X-Note': encodeURIComponent($('#note').value.trim()),
-      },
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/pdf', 'X-Note': encodeURIComponent($('#note').value.trim()) },
       body: blob,
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || `Erreur ${r.status}`);
-    showResult(j);
     const hist = db.get('history', []);
     hist.unshift({ at: Date.now(), path: j.path, name: j.filename, link: j.link });
     db.set('history', hist.slice(0, 20));
-    renderHistory();
-    pages = []; renderPages(); $('#note').value = '';
+    pages = []; $('#note').value = '';
+    showResult(j);
+    renderPages(); renderHistory();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
-    alert(`Envoi impossible : ${e.message}\n\nTes pages sont conservées, tu peux réessayer ou télécharger le PDF.`);
+    alert(`Envoi impossible : ${e.message}\n\nTes pages sont conservées : tu peux réessayer ou télécharger le PDF.`);
   } finally { busy(null); }
-};
+}
+$('#send').onclick = send;
+$('#quickSend').onclick = send;
 
+const CONF = { high: 'sûr', medium: 'probable', low: 'à vérifier' };
+function crumbs(path) {
+  return `<span class="crumbs">${String(path).split('/').filter(Boolean).map((p) => `<span>${esc(p)}</span>`).join('')}</span>`;
+}
 function showResult(j) {
   const box = $('#result');
   box.classList.remove('hidden');
   box.innerHTML = `
-    <div class="stack" style="gap:6px">
-      <strong>✅ Rangé dans Twake</strong>
-      <div>📁 <b>${esc(j.path)}</b>${j.createdFolder ? ' <span class="muted">(nouveau dossier)</span>' : ''}</div>
-      <div>📄 ${esc(j.filename)}</div>
-      <div class="muted">${esc(j.docType)} — ${esc(j.summary)}</div>
-      ${j.link ? `<a href="${esc(j.link)}" target="_blank" rel="noopener">Ouvrir le dossier</a>` : ''}
-    </div>`;
+    <div class="ok"><i>${ICON.check}</i><div><b>Rangé dans Twake</b><small>${new Date().toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div></div>
+    <hr>
+    <dl>
+      <dt>Dossier</dt><dd>${crumbs(j.path)}${j.createdFolder ? '<span class="pill">nouveau</span>' : ''}</dd>
+      <dt>Fichier</dt><dd>${esc(j.filename)}</dd>
+      <dt>Type</dt><dd>${esc(j.docType)}${j.confidence ? `<span class="pill">${esc(CONF[j.confidence] || j.confidence)}</span>` : ''}</dd>
+      <dt>Résumé</dt><dd>${esc(j.summary)}</dd>
+    </dl>
+    ${j.link ? `<a class="open" href="${esc(j.link)}" target="_blank" rel="noopener">Ouvrir le dossier ${ICON.ext}</a>` : ''}`;
+  // le reçu s'efface dès qu'on recommence un scan
+  $('#empty').classList.add('hidden');
 }
 
 function renderHistory() {
   const hist = db.get('history', []);
   $('#historyBox').classList.toggle('hidden', !hist.length);
-  $('#history').innerHTML = hist.map((h) =>
-    `<li>${new Date(h.at).toLocaleDateString('fr-FR')} — ${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener">${esc(h.path)}</a>` : esc(h.path)} / ${esc(h.name)}</li>`).join('');
+  $('#history').innerHTML = hist.map((h) => {
+    const inner = `<span class="fi">${ICON.folder}</span>
+      <span class="meta"><div class="name">${esc(h.name)}</div><div class="where">${esc(h.path)}</div></span>
+      <time>${new Date(h.at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</time>`;
+    return `<li>${h.link ? `<a href="${esc(h.link)}" target="_blank" rel="noopener" style="display:contents">${inner}</a>` : inner}</li>`;
+  }).join('');
 }
 
 renderPages();
 renderHistory();
+checkConnection();

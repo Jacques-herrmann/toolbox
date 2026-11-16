@@ -15,11 +15,11 @@ self.toolboxSW = function (cacheName, files) {
     const req = e.request;
     if (req.method !== 'GET') return;
     const sameOrigin = new URL(req.url).origin === location.origin;
-    const isCdn = /cdn\.jsdelivr\.net/.test(req.url);
+    const isCdn = /cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(req.url);
     if (!sameOrigin && !isCdn) return;
     e.respondWith(
       fetch(req).then((res) => {
-        if (res.ok) { const copy = res.clone(); caches.open(cacheName).then((c) => c.put(req, copy)); }
+        if (res.ok || res.type === 'opaque') { const copy = res.clone(); caches.open(cacheName).then((c) => c.put(req, copy)); }
         return res;
       }).catch(() => caches.match(req).then((r) => r || caches.match('./')))
     );
