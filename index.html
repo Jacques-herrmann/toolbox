@@ -64,10 +64,12 @@
     .app .go svg { width: 18px; height: 18px; }
     .rounds { --accent: #c8ff3c; --on-accent: #0a0a0b; --glow: rgba(200,255,60,.16); }
     .scan { --accent: #4fc192; --on-accent: #08130e; --glow: rgba(79,193,146,.18); animation-delay: .08s; }
+    .chess { --accent: #e2b45c; --on-accent: #1d1505; --glow: rgba(226,180,92,.16); animation-delay: .16s; }
+    .calc { --accent: #ff8a3d; --on-accent: #1a0d03; --glow: rgba(255,138,61,.15); animation-delay: .24s; }
 
     .soon {
       margin-top: 14px; padding: 18px; border-radius: 26px; border: 1.5px dashed var(--line); color: var(--muted);
-      display: flex; align-items: center; gap: 14px; animation: rise .6s .16s cubic-bezier(.2,.8,.2,1) both;
+      display: flex; align-items: center; gap: 14px; animation: rise .6s .32s cubic-bezier(.2,.8,.2,1) both;
     }
     .soon i { width: 44px; height: 44px; border-radius: 14px; border: 1.5px dashed var(--line); display: grid; place-items: center; font-style: normal; font-size: 1.3rem; }
     .soon b { color: var(--text); font-weight: 600; display: block; }
@@ -107,6 +109,24 @@
           <h2>Scanner</h2>
           <p>Photo → PDF → rangé au bon endroit dans Twake.</p>
           <div class="tags"><span>Recadrage auto</span><span>IA</span><span>Twake</span></div>
+        </div>
+        <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="app chess" href="chess/">
+        <img src="chess/icon-192.png" alt="">
+        <div>
+          <h2>Gambit</h2>
+          <p>Mon répertoire d'ouvertures, mémorisé pour de bon.</p>
+          <div class="tags"><span>Répétition espacée</span><span>Stockfish</span><span>Explorateur</span></div>
+        </div>
+        <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="app calc" href="calc/">
+        <img src="calc/icon-192.png" alt="">
+        <div>
+          <h2>Calc</h2>
+          <p>Calculatrice, mode scientifique et historique.</p>
+          <div class="tags"><span>Standard</span><span>Scientifique</span><span>Historique</span></div>
         </div>
         <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>

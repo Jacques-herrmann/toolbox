@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121411">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Gambit</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/style.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- ============ RÉPERTOIRE ============ -->
+  <section class="view" id="v-home" data-tab="home">
+    <header class="top">
+      <a href="../" class="icon-btn" aria-label="Retour à la Toolbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </a>
+      <div class="brand">Gambit<em>.</em></div>
+      <button class="icon-btn" id="settingsBtn" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      </button>
+    </header>
+    <div class="hero" id="homeHero"></div>
+    <div class="section-head">
+      <h2>Mes ouvertures</h2>
+      <div class="row-btns">
+        <button class="pill-btn" id="importBtn">Importer PGN</button>
+        <button class="pill-btn solid" id="newChBtn">+ Nouvelle</button>
+      </div>
+    </div>
+    <div class="chapters" id="chapters"></div>
+  </section>
+
+  <!-- ============ ÉDITEUR DE CHAPITRE ============ -->
+  <section class="view full hidden" id="v-editor">
+    <header class="top">
+      <button class="icon-btn" id="edBack" aria-label="Retour">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <input class="title-input" id="edName" aria-label="Nom de l'ouverture">
+      <button class="icon-btn" id="edMenu" aria-label="Options">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
+    </header>
+    <div class="split">
+      <div class="board-col">
+        <div class="board-wrap"><div id="edBoard"></div></div>
+        <div class="navbar">
+          <button id="edFirst" aria-label="Début"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg></button>
+          <button id="edPrev" aria-label="Coup précédent"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6v12l-9-6z"/></svg></button>
+          <button id="edNext" aria-label="Coup suivant"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 6v12l9-6z"/></svg></button>
+          <button id="edLast" aria-label="Fin de ligne"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg></button>
+          <button id="edFlip" aria-label="Retourner l'échiquier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg></button>
+        </div>
+      </div>
+      <div class="side-col">
+        <div class="opening-name" id="edOpening"></div>
+        <div class="line" id="edLine"></div>
+        <div class="card">
+          <div class="card-head"><h3 id="edHereTitle">Coups du répertoire ici</h3><span class="turn-badge" id="edTurn"></span></div>
+          <div class="here" id="edHere"></div>
+          <label class="comment hidden" id="edCommentWrap">
+            <span>Note sur <b id="edCommentMove"></b></span>
+            <textarea id="edComment" rows="2" placeholder="Idée du coup, plan, piège à retenir…"></textarea>
+          </label>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Parties de maîtres</h3><span class="muted small" id="edExTotal"></span></div>
+          <div class="explorer" id="edExplorer"></div>
+        </div>
+        <button class="big-btn" id="edTrain">Entraîner ce chapitre</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENTRAÎNER ============ -->
+  <section class="view hidden" id="v-train" data-tab="train">
+    <header class="top"><div class="brand">Entraîner<em>.</em></div></header>
+    <div class="filter" id="trainFilter"></div>
+    <div class="modes" id="trainModes"></div>
+    <div class="puzzle-card" id="puzzleCard"></div>
+  </section>
+
+  <!-- ============ SÉANCE ============ -->
+  <section class="view full hidden" id="v-session">
+    <header class="top">
+      <button class="icon-btn" id="sQuit" aria-label="Quitter la séance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="s-progress"><i id="sBar"></i></div>
+      <div class="s-count" id="sCount"></div>
+    </header>
+    <div class="split">
+      <div class="board-col">
+        <div class="board-wrap"><div id="sBoard"></div></div>
+      </div>
+      <div class="side-col">
+        <div class="s-meta" id="sMeta"></div>
+        <div class="prompt" id="sPrompt"></div>
+        <div class="s-comment hidden" id="sComment"></div>
+        <div class="s-actions" id="sActions">
+          <button class="pill-btn" id="sHint">Indice</button>
+          <button class="pill-btn" id="sShow">Montrer le coup</button>
+        </div>
+        <div class="s-line" id="sLine"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ANALYSE ============ -->
+  <section class="view hidden" id="v-analyse" data-tab="analyse">
+    <header class="top">
+      <div class="brand">Analyse<em>.</em></div>
+      <button class="icon-btn" id="aMenu" aria-label="Charger une position">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </header>
+    <div class="split">
+      <div class="board-col">
+        <div class="board-wrap with-eval">
+          <div class="evalbar" id="aEvalBar"><i></i><span id="aEvalTxt">0.0</span></div>
+          <div id="aBoard"></div>
+        </div>
+        <div class="navbar">
+          <button id="aFirst" aria-label="Début"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 6v12l-9-6z"/></svg></button>
+          <button id="aPrev" aria-label="Coup précédent"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6v12l-9-6z"/></svg></button>
+          <button id="aNext" aria-label="Coup suivant"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 6v12l9-6z"/></svg></button>
+          <button id="aLast" aria-label="Fin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 6v12l9-6z"/></svg></button>
+          <button id="aFlip" aria-label="Retourner l'échiquier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg></button>
+        </div>
+      </div>
+      <div class="side-col">
+        <div class="card engine">
+          <div class="card-head">
+            <h3>Moteur</h3>
+            <label class="switch"><input type="checkbox" id="aEngine"><span></span></label>
+          </div>
+          <div id="aLines" class="eng-lines"><p class="muted small">Active le moteur : Stockfish tourne sur ton téléphone, gratuit et illimité.</p></div>
+        </div>
+        <div class="opening-name" id="aOpening"></div>
+        <div class="line" id="aLine"></div>
+        <div class="card">
+          <div class="card-head"><h3>Parties de maîtres</h3><span class="muted small" id="aExTotal"></span></div>
+          <div class="explorer" id="aExplorer"></div>
+        </div>
+        <button class="big-btn ghost" id="aToRep">Ajouter cette ligne au répertoire</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROGRÈS ============ -->
+  <section class="view hidden" id="v-stats" data-tab="stats">
+    <header class="top"><div class="brand">Progrès<em>.</em></div></header>
+    <div id="statsBody"></div>
+  </section>
+
+  <!-- ============ Barre d'onglets ============ -->
+  <nav class="tabbar" id="tabbar">
+    <button data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h6"/></svg>Répertoire</button>
+    <button data-go="train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7a5 5 0 1 0 5 5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M21 3l-8 8"/></svg>Entraîner<b class="badge hidden" id="dueBadge"></b></button>
+    <button data-go="analyse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Analyse</button>
+    <button data-go="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progrès</button>
+  </nav>
+
+  <!-- ============ Feuille modale générique ============ -->
+  <div class="sheet-bg hidden" id="sheetBg"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="../shared/pwa.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

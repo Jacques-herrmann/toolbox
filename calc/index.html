@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101113">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Calc</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/style.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="calc" id="calc">
+    <header class="top">
+      <a href="../" class="icon-btn" aria-label="Retour à la Toolbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </a>
+      <div class="seg" role="group" aria-label="Mode">
+        <button id="modeBasic" aria-pressed="true">Standard</button>
+        <button id="modeSci" aria-pressed="false">Scientifique</button>
+      </div>
+      <button class="icon-btn" id="histBtn" aria-label="Historique">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+      </button>
+    </header>
+
+    <section class="screen" aria-live="polite">
+      <div class="flags"><span id="angleFlag">DEG</span><span id="secondFlag" class="hidden">2nd</span></div>
+      <div class="expr" id="expr"></div>
+      <div class="result" id="result">0</div>
+    </section>
+
+    <section class="keys">
+      <div class="sci" id="sciKeys"></div>
+      <div class="basic" id="basicKeys"></div>
+    </section>
+  </div>
+
+  <aside class="history hidden" id="history" aria-label="Historique">
+    <div class="history-head">
+      <h2>Historique</h2>
+      <div>
+        <button class="text-btn" id="histClear">Effacer</button>
+        <button class="icon-btn" id="histClose" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+    <ol id="histList"></ol>
+    <p class="empty" id="histEmpty">Rien pour l'instant. Tape un calcul puis « = ».</p>
+  </aside>
+
+  <script src="../shared/pwa.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

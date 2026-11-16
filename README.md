@@ -7,6 +7,8 @@ Chaque app est **une PWA indépendante** (son propre manifest + service worker) 
 |---|---|---|
 | Rounds | `rounds/` | Minuteur : Intervalles/Tabata, Boxe (rounds personnalisables un par un), EMOM, AMRAP, For Time. Bips, vibrations, écran maintenu allumé, presets. |
 | Scanner | `scan/` | Photo → détection des bords → redressement + filtre → PDF → l'IA (Claude) reconnaît le document et le range dans le bon dossier Twake. |
+| Gambit | `chess/` | Répertoire d'ouvertures (graphe de positions, transpositions, import/export PGN avec variantes), révision en répétition espacée (apprendre / réviser / points faibles / ligne au hasard / à l'aveugle), analyse Stockfish sur l'appareil + éval cloud, explorateur des parties de maîtres Lichess, puzzle du jour, stats et sauvegarde JSON. |
+| Calc | `calc/` | Calculatrice standard + scientifique légère (trigo deg/rad, ln/log, puissances, racines, !), aperçu en direct, historique, clavier physique. |
 
 ## Lancer en local
 
