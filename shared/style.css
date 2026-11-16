@@ -12,3 +12,9 @@ img, svg, canvas { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---- Mobile ---- */
+body { min-height: 100vh; min-height: 100dvh; overscroll-behavior-y: none; }
+button, a, label, input[type="checkbox"] { touch-action: manipulation; }
+button { -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }

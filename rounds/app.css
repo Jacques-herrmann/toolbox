@@ -186,3 +186,56 @@ body::before { /* lueur d'ambiance */
 .ctl:active { transform: scale(.94); }
 #run.paused .run-clock { animation: blink 1.2s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .35; } }
+
+/* =================== Mobile =================== */
+@media (hover: none) { .mode:hover, .ghost-btn:hover { filter: none; } }
+
+/* Petits écrans (iPhone SE, Android compacts) */
+@media (max-width: 370px) {
+  .app { padding-left: 12px; padding-right: 12px; }
+  .row { padding: 10px 10px 10px 14px; }
+  .stepper input { width: 64px; font-size: 1.3rem; }
+  .stepper button { width: 34px; height: 36px; }
+  .per-round { padding: 4px 6px 12px 10px; }
+  .pr-head, .pr-row { grid-template-columns: 28px 1fr 1fr; gap: 6px; }
+  .stepper.sm input { width: 50px; font-size: 1.1rem; }
+  .stepper.sm button { width: 26px; }
+}
+@media (max-height: 700px) {
+  .hero { padding: 16px 18px 16px; margin-top: 12px; }
+  .hero-time { font-size: clamp(3.6rem, 20vw, 5.5rem); }
+  .timeline { margin-top: 12px; }
+  .top { height: 56px; }
+  .start { height: 58px; font-size: 1.5rem; }
+}
+
+/* Séance : écrans courts en portrait */
+@media (orientation: portrait) and (max-height: 680px) {
+  .ctl { width: 56px; height: 56px; }
+  .ctl.main { width: 74px; height: 74px; }
+  .run-next { margin-bottom: 12px; }
+  .counter { margin-bottom: 12px; }
+}
+
+/* Séance : téléphone en paysage (posé sur le côté) */
+@media (orientation: landscape) and (max-height: 560px) {
+  #run {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto 1fr auto;
+    column-gap: 24px;
+    padding: calc(10px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left));
+  }
+  .run-bar { grid-column: 1 / -1; }
+  .run-head { grid-column: 1; margin-top: 10px; }
+  .run-phase { font-size: clamp(1.8rem, 7vh, 3rem); }
+  .run-round { font-size: 1.1rem; }
+  .run-clock, .run-clock.long { grid-column: 1; grid-row: 3; font-size: min(26vw, 58vh); }
+  .run-clock.long { font-size: min(20vw, 50vh); }
+  .dots { display: none; }
+  .run-next { grid-column: 1; grid-row: 4; margin: 0; }
+  .counter { grid-column: 2; grid-row: 2 / 4; align-self: start; margin: 10px 0 0; flex-direction: column; padding: 12px; gap: 8px; text-align: center; font-size: .85rem; }
+  .controls { grid-column: 2; grid-row: 2 / 5; flex-direction: column; justify-content: center; gap: 14px; }
+  .counter:not(.hidden) ~ .controls { grid-row: 3 / 5; justify-content: flex-end; flex-direction: row; }
+  .ctl { width: 54px; height: 54px; }
+  .ctl.main { width: 72px; height: 72px; }
+}

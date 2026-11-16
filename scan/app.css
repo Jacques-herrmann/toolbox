@@ -234,3 +234,39 @@ body {
 
 .rise { animation: rise .55s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* =================== Mobile =================== */
+#settings:not(.hidden) ~ #empty .stack-art,
+#settings:not(.hidden) ~ #empty .steps,
+#settings:not(.hidden) ~ #empty p { display: none; }
+#settings:not(.hidden) ~ #empty { padding-top: 22px; }
+@media (max-height: 720px) {
+  .hero { padding-top: 18px; }
+  .stack-art { width: 140px; height: 156px; margin-bottom: 20px; }
+  .stack-art .s3 { padding: 18px 16px; gap: 7px; }
+  .hero h2 { font-size: 1.6rem; }
+  .steps { margin-top: 16px; }
+  .shutter { width: 74px; height: 74px; }
+  .round-btn { width: 50px; height: 50px; }
+  .dock { padding-top: 12px; }
+}
+@media (max-width: 370px) {
+  .app { padding-left: 14px; padding-right: 14px; }
+  .pages { margin: 12px -14px 0; padding: 10px 14px 18px; }
+  .page { width: 118px; }
+  .receipt { padding: 18px 16px 28px; }
+  .receipt dl { grid-template-columns: 1fr; gap: 2px; }
+  .receipt dd { margin-bottom: 8px; }
+}
+/* Éditeur en paysage : outils sur le côté */
+@media (orientation: landscape) and (max-height: 560px) {
+  #editor { display: grid; grid-template-columns: 1fr 220px; grid-template-rows: auto 1fr; }
+  .ed-top { grid-column: 1 / -1; }
+  #editor .stage { grid-column: 1; padding: 6px; }
+  #editor canvas { max-width: calc(100vw - 250px); max-height: calc(100dvh - 70px); }
+  .ed-hint { display: none; }
+  .ed-bar { grid-column: 2; justify-content: center; }
+  .filters { flex-wrap: wrap; }
+  .tools { flex-wrap: wrap; gap: 14px; }
+}
+@media (hover: hover) { .btn:hover { filter: brightness(1.05); } }

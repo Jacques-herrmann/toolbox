@@ -39,7 +39,11 @@ const parseTime = (str) => {
   str = String(str).trim();
   if (!str) return 0;
   if (str.includes(':')) return str.split(':').map((p) => parseInt(p, 10) || 0).reduce((a, p) => a * 60 + p, 0);
-  return parseInt(str, 10) || 0; // sans « : » → secondes
+  // Sans « : » (clavier numérique du téléphone) : saisie façon micro-ondes
+  // 45 → 0:45 · 300 → 3:00 · 1230 → 12:30
+  const d = str.replace(/D/g, '');
+  if (d.length <= 2) return parseInt(d, 10) || 0;
+  return (parseInt(d.slice(0, -2), 10) || 0) * 60 + (parseInt(d.slice(-2), 10) || 0);
 };
 const stepOf = (v) => (v < 60 ? 5 : v < 300 ? 15 : 30);
 
@@ -253,6 +257,9 @@ const sounds = {
 const PAUSE_ICON = '<rect x="6" y="5" width="4.5" height="14" rx="1.5"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.5"/>';
 const PLAY_ICON = '<path d="M8 4.5v15a1 1 0 0 0 1.5.86l11-7.5a1 1 0 0 0 0-1.72l-11-7.5A1 1 0 0 0 8 4.5z"/>';
 const PHASE_LABEL = { prep: 'Prêt ?', work: 'Effort', rest: 'Repos' };
+const PHASE_COLOR = { prep: '#ffb22e', work: '#c8ff3c', rest: '#47a8ff', done: '#0a0a0b' };
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const setBarColor = (c) => themeMeta?.setAttribute('content', c);
 
 let run = null;
 let wakeLock = null;
@@ -312,6 +319,7 @@ function draw() {
   const elapsed = now - run.segStart;
   const el = $('#run');
   el.dataset.phase = seg.phase;
+  setBarColor(PHASE_COLOR[seg.phase]);
   el.dataset.warn = seg.phase === 'work' && seg.warn > 0 && seg.dur > seg.warn && seg.dur - elapsed <= seg.warn && !run.pausedAt ? '1' : '0';
   el.classList.toggle('paused', !!run.pausedAt);
 
@@ -348,6 +356,7 @@ function finish() {
   run.done = true;
   const el = $('#run');
   el.dataset.phase = 'done'; el.dataset.warn = '0'; el.classList.remove('paused');
+  setBarColor(PHASE_COLOR.done);
   const last = run.segs[run.segs.length - 1];
   $('#rPhase').textContent = 'Terminé';
   $('#rRound').innerHTML = run.segs.some((s) => s.counter) ? `rounds<b>${run.count}</b>` : run.total ? `rounds<b>${run.total}</b>` : '';
@@ -370,6 +379,7 @@ function stop() {
   $('#run').classList.add('hidden');
   $('#setup').classList.remove('hidden');
   $('#startbar').classList.remove('hidden');
+  setBarColor('#0a0a0b');
 }
 
 $('#start').onclick = start;
