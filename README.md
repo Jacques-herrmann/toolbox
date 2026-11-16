@@ -14,10 +14,10 @@ Chaque app est **une PWA indépendante** (son propre manifest + service worker) 
 npx serve .        # ou : python -m http.server 8080
 ```
 
-## Héberger (GitHub Pages)
+## Hébergement
 
-Settings → Pages → Branch `main` / root. L'app est alors sur `https://<user>.github.io/toolbox/`.
-Pour installer une app seule sur le téléphone : ouvrir `…/toolbox/rounds/` puis « Ajouter à l'écran d'accueil ».
+En ligne sur **https://jhntoolbox.netlify.app/** (Netlify, déploiement auto à chaque push sur `main`).
+Pour installer une app seule sur le téléphone : ouvrir `https://jhntoolbox.netlify.app/rounds/` puis « Ajouter à l'écran d'accueil ».
 
 ## Serveur du Scanner (`server/`, Cloudflare Worker, gratuit)
 
