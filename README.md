@@ -18,8 +18,12 @@ npx serve .        # ou : python -m http.server 8080
 
 ## Hébergement
 
-En ligne sur **https://jhntoolbox.netlify.app/** (Netlify, déploiement auto à chaque push sur `main`).
-Pour installer une app seule sur le téléphone : ouvrir `https://jhntoolbox.netlify.app/rounds/` puis « Ajouter à l'écran d'accueil ».
+En ligne sur **https://jacques-herrmann.github.io/toolbox/** (GitHub Pages, branche `main`, racine ; déploiement auto à chaque push).
+Pour installer une app seule sur le téléphone : ouvrir `https://jacques-herrmann.github.io/toolbox/rounds/` puis « Ajouter à l'écran d'accueil ».
+
+`.nojekyll` : GitHub sert les fichiers tels quels (pas de Jekyll). Tous les chemins du site sont relatifs, il marche donc
+dans le sous-dossier `/toolbox/` comme à la racine d'un domaine.
+Ancien hébergement : Netlify (abandonné à cause du badge imposé sur l'offre gratuite ; `netlify.toml` conservé au cas où).
 
 ## Serveur du Scanner (`server/`, Cloudflare Worker, gratuit)
 
