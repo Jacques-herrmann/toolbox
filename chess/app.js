@@ -333,6 +333,20 @@ function edRender(animate = false) {
     hereEl.appendChild(row);
   });
   if (mine && here.length > 1) hereEl.insertAdjacentHTML('beforeend', '<p class="warn small">Plusieurs coups pour toi ici : tous seront acceptés à l\'entraînement.</p>');
+  if (!mine && here.length) {
+    hereEl.insertAdjacentHTML('beforeend', `<p class="muted small">${here.length > 1 ? `<b>${here.length} variantes</b> : à l'entraînement, l'adversaire en jouera une au hasard. ` : ''}Joue un autre coup adverse sur l'échiquier pour ajouter une variante.</p>`);
+  }
+  // Juste après un coup adverse : raccourci pour revenir préparer une autre réponse adverse
+  if (mine && ed.i > 0) {
+    const prevFen = ed.fens[ed.i - 1];
+    const n = R.movesAt(ed.ch, prevFen).length;
+    const b = document.createElement('button');
+    b.className = 'here-alt';
+    b.textContent = `＋ Autre réponse adverse à la place de ${moveLabel(prevFen, ed.sans[ed.i - 1])}${n > 1 ? ` (${n} variantes)` : ''}`;
+    b.onclick = () => { ed.i--; edRender(); };
+    hereEl.appendChild(b);
+  }
+  renderTree();
 
   // Commentaire du coup qui mène ici
   const wrap = $('edCommentWrap');
@@ -349,6 +363,83 @@ function edRender(animate = false) {
   renderLine($('edLine'), ed.fens, ed.sans, ed.i, (i) => { ed.i = i; edRender(); });
   if (settings.explorer) renderExplorer(fen, $('edExplorer'), $('edExTotal'), $('edOpening'), (san) => { const mv = edGame().move(san); edMove(mv.from, mv.to, mv.promotion); });
   else { $('edExplorer').innerHTML = '<p class="muted small">Explorateur désactivé dans les réglages.</p>'; }
+}
+
+// Arborescence complète du chapitre : lignes à coup unique en ligne, embranchements en retrait.
+function renderTree() {
+  const ch = ed.ch, el = $('edTree');
+  const curPath = ed.sans.slice(0, ed.i);
+  const seen = new Set();
+  let branches = 0;
+  el.innerHTML = '';
+
+  function moveBtn(line, fen, san, path, forceNum) {
+    const g = new Chess(fen);
+    const white = g.turn() === 'w';
+    if (white || forceNum) line.insertAdjacentHTML('beforeend', `<span class="num">${g.moveNumber()}.${white ? '' : '..'}</span>`);
+    const b = document.createElement('button');
+    b.textContent = san;
+    const p = [...path, san];
+    const onPath = p.length <= curPath.length && p.every((s, i) => s === curPath[i]);
+    b.className = (g.turn() === ch.color ? 'mine' : 'theirs') + (onPath ? (p.length === curPath.length ? ' cur' : ' path') : '');
+    b.onclick = () => edGotoPath(p);
+    line.appendChild(b);
+    g.move(san);
+    return { fen: g.fen(), path: p };
+  }
+
+  function block(fen, path, forceNum) {
+    const line = document.createElement('div');
+    line.className = 'tr-line';
+    for (let guard = 0; guard < 400; guard++) {
+      const k = R.posKey(fen);
+      const moves = ch.moves[k];
+      if (!moves?.length) break;
+      if (seen.has(k)) { line.insertAdjacentHTML('beforeend', '<span class="tr-transpo">↪ transposition</span>'); break; }
+      seen.add(k);
+      if (moves.length === 1) {
+        ({ fen, path } = moveBtn(line, fen, moves[0].san, path, forceNum));
+        forceNum = false;
+        continue;
+      }
+      branches++;
+      const theirs = new Chess(fen).turn() !== ch.color;
+      line.insertAdjacentHTML('beforeend', `<span class="tr-tag ${theirs ? '' : 'mine'}">${theirs ? `${moves.length} variantes adverses · au hasard` : `${moves.length} coups acceptés`}</span>`);
+      const br = document.createElement('div');
+      br.className = 'tr-branch' + (theirs ? ' theirs' : '');
+      for (const m of moves) {
+        const sub = document.createElement('div');
+        sub.className = 'tr-line';
+        let next;
+        try { next = moveBtn(sub, fen, m.san, path, true); } catch { continue; }
+        const rest = block(next.fen, next.path, false);
+        sub.append(...rest.childNodes);
+        br.appendChild(sub);
+      }
+      line.appendChild(br);
+      break;
+    }
+    return line;
+  }
+
+  const root = block(ch.start, [], true);
+  if (!root.childNodes.length) el.innerHTML = '<p class="muted small">Aucun coup pour l\'instant.</p>';
+  else el.appendChild(root);
+  $('edTreeInfo').textContent = branches ? `${branches} embranchement${branches > 1 ? 's' : ''}` : '';
+  // Garde le coup courant visible sans faire défiler la page entière
+  const cur = el.querySelector('.cur');
+  if (cur) {
+    const r = cur.getBoundingClientRect(), box = el.getBoundingClientRect();
+    if (r.top < box.top || r.bottom > box.bottom) el.scrollTop += r.top - box.top - box.height / 3;
+  }
+}
+
+function edGotoPath(sans) {
+  const g = new Chess(ed.ch.start);
+  ed.fens = [ed.ch.start]; ed.sans = [];
+  for (const san of sans) { g.move(san); ed.fens.push(g.fen()); ed.sans.push(san); }
+  ed.i = sans.length;
+  edRender();
 }
 
 function moveLabel(fen, san) {
@@ -615,12 +706,13 @@ async function advance(token) {
   let choice;
   if (isLine) choice = opts[Math.floor(Math.random() * opts.length)];
   else {
+    // Variante tirée au hasard parmi celles qui mènent encore à des positions à travailler
     const scored = opts.map((m) => { const g = new Chess(fen); g.move(m.san); return { m, n: remaining(g.fen()) }; });
-    const best = Math.max(...scored.map((x) => x.n));
-    const pool = scored.filter((x) => x.n === best);
+    const live = scored.filter((x) => x.n > 0);
+    const pool = live.length ? live : scored;
     choice = pool[Math.floor(Math.random() * pool.length)].m;
   }
-  setPrompt(mine ? 'Coup connu…' : 'L\'adversaire joue…', 'wait');
+  setPrompt(mine ? 'Coup connu…' : opts.length > 1 ? `L'adversaire choisit parmi ${opts.length} variantes…` : 'L\'adversaire joue…', 'wait');
   await sleep(mine ? settings.speed * .6 : settings.speed);
   if (!S || S.token !== token) return;
   playSession(choice.san);

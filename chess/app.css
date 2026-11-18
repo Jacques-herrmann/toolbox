@@ -190,6 +190,27 @@ body::before {
 .hm-play b { font-size: 1.02rem; }
 .hm-play span { color: var(--muted); font-size: .82rem; }
 .hm-del { width: 42px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-size: 1.3rem; }
+.here-alt { margin-top: 4px; padding: 9px 12px; border-radius: 12px; border: 1px dashed var(--line); color: var(--blue); font-weight: 700; font-size: .88rem; text-align: left; }
+
+/* ---- Arborescence des variantes ---- */
+.tree-card > summary { list-style: none; cursor: pointer; margin-bottom: 0; }
+.tree-card > summary::-webkit-details-marker { display: none; }
+.tree-card > summary h3::before { content: '▸ '; }
+.tree-card[open] > summary h3::before { content: '▾ '; }
+.tree-card[open] > summary { margin-bottom: 10px; }
+.tree { max-height: 340px; overflow: auto; font-size: .9rem; line-height: 1.7; }
+.tr-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 3px; }
+.tr-line .num { color: var(--muted); font-size: .78rem; margin-left: 3px; }
+.tr-line button { padding: 1px 5px; border-radius: 6px; font-weight: 700; }
+.tr-line button.theirs { color: var(--blue); }
+.tr-line button.path { background: var(--surface-2); }
+.tr-line button.cur { background: var(--brass); color: var(--brass-ink); }
+.tr-branch { flex-basis: 100%; display: grid; gap: 2px; margin: 2px 0 4px 6px; padding-left: 10px; border-left: 2px solid var(--line); }
+.tr-branch.theirs { border-left-color: rgba(106,169,230,.45); }
+.tr-tag { flex-basis: 100%; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); margin: 2px 0 0 6px; }
+.tr-tag.mine { color: var(--green); }
+.tr-transpo { color: var(--muted); font-size: .78rem; font-style: italic; }
+
 .comment { display: block; margin-top: 12px; }
 .comment span { font-size: .8rem; color: var(--muted); }
 .comment textarea, .sheet textarea, .field input {
